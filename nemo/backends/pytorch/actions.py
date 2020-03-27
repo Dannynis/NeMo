@@ -1298,7 +1298,7 @@ class PtActions(Actions):
 
             # iteration over batches in epoch
             batch_counter = 0
-            for _, data in tqdm(enumerate(train_dataloader, 0)):
+            for _, data in tqdm(enumerate(train_dataloader, 0),total=len(train_dataloader.dataset)):
                 if max_steps is not None and self.step >= max_steps:
                     break
 
