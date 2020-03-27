@@ -8,6 +8,7 @@ from collections import defaultdict
 from contextlib import ExitStack
 from pathlib import Path
 from typing import List, Optional
+from tqdm import tqdm
 
 import torch
 import torch.distributed as dist
@@ -1285,6 +1286,7 @@ class PtActions(Actions):
 
         # MAIN TRAINING LOOP
         # iteration over epochs
+        print ('Entered main training loop')
         while num_epochs is None or self.epoch_num < num_epochs:
             if train_sampler is not None:
                 train_sampler.set_epoch(self.epoch_num)
@@ -1296,7 +1298,7 @@ class PtActions(Actions):
 
             # iteration over batches in epoch
             batch_counter = 0
-            for _, data in enumerate(train_dataloader, 0):
+            for _, data in tqdm(enumerate(train_dataloader, 0)):
                 if max_steps is not None and self.step >= max_steps:
                     break
 
@@ -1411,6 +1413,7 @@ class PtActions(Actions):
             # End of epoch for loop
             # Register epochs end with callbacks
             self._perform_on_epoch_end(callbacks=callbacks)
+            print ('Finished epoch: {}'.format(self.epoch_num))
             self.epoch_num += 1
         self._perform_on_action_end(callbacks=callbacks)
 
