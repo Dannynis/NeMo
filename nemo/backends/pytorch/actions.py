@@ -636,6 +636,10 @@ class PtActions(Actions):
                                 callback.swriter.add_scalar(key, val, step)
                     if hasattr(callback, 'wandb_log'):
                         callback.wandb_log(vals_to_log)
+        print ('Releasing GPU memory after eval')
+        for tensor in tensors:
+            del(tensor)
+        torch.cuda.empty_cache()
 
     def _infer(
         self, tensors_to_return, verbose=False, cache=False, use_cache=False, offload_to_cpu=True,
