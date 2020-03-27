@@ -183,7 +183,7 @@ class SimpleLossLoggerCallback(ActionCallback):
 
     def on_action_start(self):
         if self.global_rank is None or self.global_rank == 0:
-            logging.info("Starting .....")
+            logging.info("Starting :) :).....")
             self._start_time = time.time()
 
     def on_action_end(self):
