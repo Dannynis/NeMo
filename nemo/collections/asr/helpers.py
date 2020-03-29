@@ -202,6 +202,9 @@ def process_evaluation_epoch(global_vars: dict, eval_metric=None, tag=None):
             logging.info(f"==========>>>>>>Evaluation {eval_metric} {tag}: " f"{wer * 100 : 5.2f}%")
             return_dict[f"Evaluation_{eval_metric}_{tag}"] = wer
 
+    logging.info(f'Prediction: {hypotheses[0]}')
+    logging.info(f'Reference: {references[0]}')
+
     return return_dict
 
 def post_process_predictions(predictions, labels):
