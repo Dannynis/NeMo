@@ -59,20 +59,22 @@ def monitor_asr_train_progress(tensors: list, labels: list, eval_metric='WER', t
             reference = ''.join([labels_map[c] for c in target])
             references.append(reference)
         hypotheses = __ctc_decoder_predictions_tensor(tensors[1], labels=labels)
+    #
+    # eval_metric = eval_metric.upper()
+    # if eval_metric not in {'WER', 'CER'}:
+    #     raise ValueError('eval_metric must be \'WER\' or \'CER\'')
+    for eval_metric in {'WER', 'CER'}:
+        use_cer = True if eval_metric == 'CER' else False
+        tag = f'training_batch_{eval_metric}'
+        wer = word_error_rate(hypotheses, references, use_cer=use_cer)
+        if tb_logger is not None:
+            tb_logger.add_scalar(tag, wer)
+        logging.info(f'{tag}: {wer * 100 : 5.2f}%')
 
-    eval_metric = eval_metric.upper()
-    if eval_metric not in {'WER', 'CER'}:
-        raise ValueError('eval_metric must be \'WER\' or \'CER\'')
-    use_cer = True if eval_metric == 'CER' else False
-
-    tag = f'training_batch_{eval_metric}'
-    wer = word_error_rate(hypotheses, references, use_cer=use_cer)
-    if tb_logger is not None:
-        tb_logger.add_scalar(tag, wer)
     logging.info(f'Loss: {tensors[0]}')
-    logging.info(f'{tag}: {wer * 100 : 5.2f}%')
     logging.info(f'Prediction: {hypotheses[0]}')
     logging.info(f'Reference: {references[0]}')
+
 
 
 def monitor_classification_training_progress(tensors: list, eval_metric=None, tb_logger=None):
@@ -166,7 +168,7 @@ def process_evaluation_batch(tensors: dict, global_vars: dict, labels: list):
     global_vars['transcripts'] += __gather_transcripts(transcript_list, transcript_len_list, labels=labels)
 
 
-def process_evaluation_epoch(global_vars: dict, eval_metric='WER', tag=None):
+def process_evaluation_epoch(global_vars: dict, eval_metric=None, tag=None):
     """
     Calculates the aggregated loss and WER across the entire evaluation dataset
     """
@@ -174,25 +176,33 @@ def process_evaluation_epoch(global_vars: dict, eval_metric='WER', tag=None):
     hypotheses = global_vars['predictions']
     references = global_vars['transcripts']
 
-    eval_metric = eval_metric.upper()
-    if eval_metric not in {'WER', 'CER'}:
-        raise ValueError('eval_metric must be \'WER\' or \'CER\'')
-    use_cer = True if eval_metric == 'CER' else False
+    if eval_metric is not None:
+        eval_metric = eval_metric.upper()
+        if eval_metric not in {'WER', 'CER'}:
+            raise ValueError('eval_metric must be \'WER\' or \'CER\'')
 
-    wer = word_error_rate(hypotheses=hypotheses, references=references, use_cer=use_cer)
+    eval_metrics = [eval_metric] if eval_metric is not None else ['WER', 'CER']
+
+    return_dict = {}
 
     if tag is None:
+        return_dict["Evaluation_Loss"] = eloss
         logging.info(f"==========>>>>>>Evaluation Loss: {eloss}")
-        logging.info(f"==========>>>>>>Evaluation {eval_metric}: " f"{wer * 100 : 5.2f}%")
-        return {"Evaluation_Loss": eloss, f"Evaluation_{eval_metric}": wer}
     else:
+        return_dict[f"Evaluation_Loss_{tag}"] = eloss
         logging.info(f"==========>>>>>>Evaluation Loss {tag}: {eloss}")
-        logging.info(f"==========>>>>>>Evaluation {eval_metric} {tag}: " f"{wer * 100 : 5.2f}%")
-        return {
-            f"Evaluation_Loss_{tag}": eloss,
-            f"Evaluation_{eval_metric}_{tag}": wer,
-        }
 
+    for eval_metric in eval_metrics:
+        use_cer = True if eval_metric == 'CER' else False
+        wer = word_error_rate(hypotheses=hypotheses, references=references, use_cer=use_cer)
+        if tag is None:
+            logging.info(f"==========>>>>>>Evaluation {eval_metric}: " f"{wer * 100 : 5.2f}%")
+            return_dict[f"Evaluation_{eval_metric}"] = wer
+        else:
+            logging.info(f"==========>>>>>>Evaluation {eval_metric} {tag}: " f"{wer * 100 : 5.2f}%")
+            return_dict[f"Evaluation_{eval_metric}_{tag}"] = wer
+
+    return return_dict
 
 def post_process_predictions(predictions, labels):
     return __gather_predictions(predictions, labels=labels)

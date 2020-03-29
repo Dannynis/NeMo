@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import torch
 import glob
 import os
 import sys
@@ -281,7 +282,6 @@ class CheckpointCallback(ActionCallback):
                 else:
                     filename = f"{module}-EPOCH-{self.epoch_num}.pt"
                 module.save_to(os.path.join(path, filename))
-
         if self._step_freq > -1:
             filename = f"trainer-STEP-{self.step}.pt"
             self.action.save_state_to(f'{path}/{filename}')
@@ -297,6 +297,8 @@ class CheckpointCallback(ActionCallback):
                     os.remove(file)
             self._saved_ckpts = self._saved_ckpts[-self._ckpt2keep :]
         logging.info(f'Saved checkpoint: {path}/{filename}')
+        torch.cuda.empty_cache()
+        print ('Releasing GPU memory after model save')
 
     def __restore_from(self, path):
         if not os.path.isdir(path):
