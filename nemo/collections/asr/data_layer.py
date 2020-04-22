@@ -130,7 +130,7 @@ transcript_n}
         pad_id=None,
         min_duration=0.1,
         max_duration=None,
-        normalize_transcripts=True,
+        normalize_transcripts=False,
         trim_silence=False,
         load_audio=True,
         drop_last=False,

@@ -10,6 +10,8 @@ from nemo.core.neural_types import *
 from nemo.utils.decorators import add_port_docs
 from nemo.utils.helpers import get_cuda_device
 
+import sys
+sys.path.insert(1, '/data/PytorchEnv/lib/python3.6/site-packages/ctc_decoders-1.1-py3.6-linux-x86_64.egg')
 
 class BeamSearchDecoderWithLM(NonTrainableNM):
     """Neural Module that does CTC beam search with a n-gram language model.

@@ -286,7 +286,7 @@ class NeuralModule(ABC):
         abs_path_file = path.expanduser(config_file)
 
         # Open the config file.
-        with open(abs_path_file, 'r') as stream:
+        with open(abs_path_file, 'r',encoding='utf8') as stream:
             loaded_config = YAML.load(stream)
 
         # Check section.

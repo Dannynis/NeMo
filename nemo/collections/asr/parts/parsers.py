@@ -48,6 +48,8 @@ class CharParser:
         self._labels_map = {label: index for index, label in enumerate(labels)}
         self._special_labels = set([label for label in labels if len(label) > 1])
 
+        print ('found {} special labels'.format(self._special_labels))
+
     def __call__(self, text: str) -> Optional[List[int]]:
         if self._do_normalize:
             text = self._normalize(text)
